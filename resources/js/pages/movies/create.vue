@@ -6,8 +6,14 @@ import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
+import { Multiselect } from 'vue-multiselect';
 
-
+const props = defineProps({
+    genres: {
+        type: Array,
+        default: () => [],
+    },
+});
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -16,25 +22,24 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-const genres = [
-    { name: 'Action', value: 'action' },
-    { name: 'Adventure', value: 'adventure' },
-    { name: 'Comedy', value: 'comedy' },
-];
-
 const form = useForm({
     name: '',
-    description: '',
-    director: '',
-    year: '',
-    genre: '',
-    duration: '',
-    classification: '',
+    id_genre:'',
 });
 
 const handleSubmit = () => {
     form.post(route('movies.store'));
 };
+
+
+const onSearchGenresChange = (search: string) => {
+    console.log('onSearchGenresChange', search);
+}
+
+const onSelectGenre = (id_genre: any) => {
+    form.id_genre = id_genre.id;
+}
+
 
 
 </script>
@@ -56,7 +61,18 @@ const handleSubmit = () => {
                                 <Label for="name">Movie Name</Label>
                                 <Input id="name" type="text" placeholder="Movie Name" v-model="form.name" />
                             </div>
-                            
+
+                            <div class="flex flex-col space-y-1.5">
+                                <Label for="genre">Genre</Label>
+                                <Multiselect
+                                    v-model="form.id_genre"
+                                    id="id_genre" placeholder="Search genre"
+                                    :options="genres" label="name" track-by="id"
+                                    @input="onSelectGenre"
+                                    :multiple="true"
+                                    :close-on-select="false"
+                                />
+                            </div>
 
                         </div>
                     </CardContent>
