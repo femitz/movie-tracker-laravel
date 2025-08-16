@@ -7,5 +7,5 @@ use Illuminate\Database\Eloquent\Model;
 class Movies extends Model
 {
     protected $table = 'movies';
-    protected $fillable = ['name', 'id_genre', 'id_user'];
+    protected $fillable = ['name', 'id_genre', 'id_user', 'date'];
 }

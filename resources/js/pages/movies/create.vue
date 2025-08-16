@@ -8,6 +8,9 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Multiselect } from 'vue-multiselect';
 import { useReward } from 'vue-rewards';
+import DatePicker from 'primevue/datepicker';
+
+
 
 const { reward } = useReward('rewards', 'confetti', {
     startVelocity:10,
@@ -32,6 +35,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 const form = useForm({
     name: '',
     id_genre: [],
+    date: '',
 });
 
 const handleSubmit = () => {
@@ -80,6 +84,11 @@ const onSelectGenre = (id_genre: any) => {
                                     :multiple="true"
                                     :close-on-select="false"
                                 />
+                            </div>
+
+                            <div class="flex flex-col space-y-1.5">
+                                <Label for="date">Date</Label>
+                                <DatePicker v-model="form.date" dateFormat="dd/mm/yy" />
                             </div>
 
                         </div>

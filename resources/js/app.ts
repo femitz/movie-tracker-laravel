@@ -6,6 +6,39 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
+import PrimeVue from 'primevue/config';
+import Aura from '@primeuix/themes/aura';
+
+const theme = localStorage.getItem('appearance');
+
+const optionsPrimeVueLight = {
+    prefix: 'p',
+    light: true,
+    darkModeSelector: false,
+    cssLayer: false
+}
+
+const optionsPrimeVueDark = {
+    prefix: 'p',
+    dark: true,
+    darkModeSelector: true,
+    cssLayer: false
+}
+
+const optionsPrimeVueSystem = {
+    prefix: 'p',
+    darkModeSelector: 'system',
+    cssLayer: false
+}
+
+var optionsPrimeVue: any = "";
+if (theme === 'dark') {
+    optionsPrimeVue = optionsPrimeVueDark;
+} else if (theme === 'light') {
+    optionsPrimeVue = optionsPrimeVueLight;
+} else {
+    optionsPrimeVue = optionsPrimeVueSystem;
+}
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -16,6 +49,12 @@ createInertiaApp({
         createApp({ render: () => h(App, props) })
             .use(plugin)
             .use(ZiggyVue)
+            .use(PrimeVue, {
+                theme: {
+                    preset: Aura,
+                    options: optionsPrimeVue
+                },
+            })
             .mount(el);
     },
     progress: {

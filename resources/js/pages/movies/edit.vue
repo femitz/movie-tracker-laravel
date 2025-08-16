@@ -19,6 +19,7 @@ interface Genre {
 interface Movie {
     id: number;
     name: string;
+    date: string;
     id_genres: number[];
 }
 
@@ -41,8 +42,10 @@ const props = defineProps<{
 const form = ref<{
     name: string;
     id_genre: Genre[];
+    date: string;
 }>({
     name: props.movie.name,
+    date: props.movie.date,
     id_genre: [],
 });
 
@@ -67,6 +70,7 @@ const submitForm = () => {
     const formData = {
         name: form.value.name,
         id_genre: form.value.id_genre.map((genre) => ({ id: genre.id })),
+        date: form.value.date,
     };
 
     ApiCall(route('movies.update', { id: props.movie.id }), 'put', formData).then((response: any) => {

@@ -7,11 +7,13 @@ import axios from 'axios';
 import { success, error } from '@/lib/Notification';
 import { ref, onMounted } from 'vue';
 import { ApiCall } from '@/lib/Api';
+import { formatDateFromDB } from '@/lib/utils';
 
 interface Movie {
     id: number;
     name: string;
     id_user: number;
+    date: string;
     created_at: string;
     updated_at: string;
     id_genres: number[];
@@ -73,7 +75,7 @@ const deleteMovie = (id: number) => {
                                 <span v-else class="text-sm text-gray-400">No genres</span>
                             </div>
                             <div class="mt-1 text-xs text-gray-500">
-                                Created at: {{ new Date(movie.created_at).toLocaleDateString('pt-BR') }}
+                                Watched at: {{ formatDateFromDB(movie.date) }}
                             </div>
                         </div>
                         <div class="flex gap-2">

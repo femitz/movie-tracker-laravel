@@ -9,6 +9,7 @@ use App\Models\Genres;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\MoviesGenres;
+use Carbon\Carbon;
 
 class MoviesController extends Controller
 {
@@ -32,6 +33,7 @@ class MoviesController extends Controller
                     'id' => $movie_raw->id,
                     'name' => $movie_raw->name,
                     'id_user' => $movie_raw->id_user,
+                    'date' => $movie_raw->date,
                     'created_at' => $movie_raw->created_at,
                     'updated_at' => $movie_raw->updated_at,
                     'id_genres' => [],
@@ -90,6 +92,7 @@ class MoviesController extends Controller
             $reg = Movies::find($request->id);
         }
         $reg->name = $request->name;
+        $reg->date = Carbon::parse($request->date)->format('Y-m-d');
         $reg->id_user = Auth::user()->id;
         return $reg;
      }
@@ -113,6 +116,7 @@ class MoviesController extends Controller
             'movie' => [
                 'id' => $movie->id,
                 'name' => $movie->name,
+                'date' => $movie->date,
                 'id_genres' => $movieGenres
             ],
             'genres' => $genres
@@ -122,14 +126,12 @@ class MoviesController extends Controller
     public function update(Request $request, $id)
     {
         $user = Auth::user();
-        $movie = Movies::find($id);
+        $movie = $this->loadRequest($request);
 
         if (!$movie || $movie->id_user != $user->id) {
             return response()->json(['success' => false, 'message' => 'Movie not found'], 404);
         }
 
-        // Atualizar nome do filme
-        $movie->name = $request->name;
         $movie->save();
 
         // Remover gêneros antigos
