@@ -7,6 +7,13 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, useForm } from '@inertiajs/vue3';
 import { Multiselect } from 'vue-multiselect';
+import { useReward } from 'vue-rewards';
+
+const { reward } = useReward('rewards', 'confetti', {
+    startVelocity:10,
+    spread:180,
+    elementCount:100
+});
 
 const props = defineProps({
     genres: {
@@ -29,6 +36,7 @@ const form = useForm({
 
 const handleSubmit = () => {
     form.post(route('movies.store'));
+
 };
 
 
@@ -77,7 +85,7 @@ const onSelectGenre = (id_genre: any) => {
                         </div>
                     </CardContent>
                     <CardFooter class="relative z-0">
-                        <Button type="submit" class="cursor-pointer">Save</Button>
+                        <Button id="rewards" type="submit" class="cursor-pointer" @click="reward">Save</Button>
                     </CardFooter>
                 </Card>
             </form>
