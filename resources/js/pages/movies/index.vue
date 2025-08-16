@@ -3,6 +3,9 @@ import Button from '@/components/ui/button/Button.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
+import axios from 'axios';
+import { success, error } from '@/lib/Notification';
+import { ref, onMounted } from 'vue';
 
 interface Movie {
     id: number;
@@ -25,6 +28,26 @@ const props = defineProps<{
     movies: Movie[];
 }>();
 
+const localMovies = ref<Movie[]>([]);
+
+// Inicializar a lista local quando o componente for montado
+onMounted(() => {
+    localMovies.value = [...props.movies];
+});
+
+const deleteMovie = (id: number) => {
+    axios.delete(route('movies.destroy', { id: id })).then((response) => {
+        if (response.data.success) {
+            success('Filme deletado com sucesso!');
+
+            localMovies.value = localMovies.value.filter((movie) => movie.id !== id);
+            return;
+        }
+        error('Erro ao deletar filme!');
+        return;
+    });
+}
+
 </script>
 
 <template>
@@ -38,7 +61,7 @@ const props = defineProps<{
             </Link>
 
             <div class="grid gap-4">
-                <div v-for="movie in movies" :key="movie.id" class="border rounded-lg p-4 bg-white shadow-sm">
+                <div v-for="movie in localMovies" :key="movie.id" class="border rounded-lg p-4 bg-white shadow-sm">
                     <div class="flex justify-between items-start">
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">{{ movie.name }}</h3>
@@ -54,13 +77,18 @@ const props = defineProps<{
                             </div>
                         </div>
                         <div class="flex gap-2">
-                            <Button variant="outline" size="sm">Edit</Button>
-                            <Button variant="destructive" size="sm">Delete</Button>
+
+                            <!-- <Link :href="route('movies.edit', { id: movie.id })">
+                                <Button variant="outline" size="sm">Edit</Button>
+                            </Link> -->
+
+                            <Button variant="destructive" size="sm" @click="deleteMovie(movie.id)">Delete</Button>
+
                         </div>
                     </div>
                 </div>
                 
-                <div v-if="movies.length === 0" class="text-center py-8 text-gray-500">
+                <div v-if="localMovies.length === 0" class="text-center py-8 text-gray-500">
                     No movies found. Click on "Add" to create your first movie.
                 </div>
             </div>

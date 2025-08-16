@@ -17,6 +17,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('movies', [MoviesController::class, 'index'])->name('movies.index');
     Route::get('movies/create', [MoviesController::class, 'create'])->name('movies.create');
     Route::post('movies', [MoviesController::class, 'store'])->name('movies.store');
+    Route::delete('movies/{id}', [MoviesController::class, 'destroy'])->name('movies.destroy');
+    Route::put('movies/{id}', [MoviesController::class, 'update'])->name('movies.update');
 });
 
 

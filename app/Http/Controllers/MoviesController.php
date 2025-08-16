@@ -48,8 +48,6 @@ class MoviesController extends Controller
         
         // Converter para array indexado
         $movies = array_values($movies);
-
-        error_log(json_encode($movies));
      
         return Inertia::render('movies/index', ['movies' => $movies]);
     }
@@ -110,9 +108,19 @@ class MoviesController extends Controller
 
     // }
 
-    // public function destroy(Movie $movie)
-    // {
+    public function destroy($id)
+    {
+        $user = Auth::user();
+        $movie = Movies::find($id);
 
-    // }
+        if ($movie->id_user != $user->id) {
+            return response()->json(['success' => false, 'message' => 'You are not authorized to delete this movie'], 403);
+        }
+        
+        $movie->delete();
+        MoviesGenres::where('id_movie', $id)->delete();
+
+        return response()->json(['success' => true]);
+    }
 
 }
