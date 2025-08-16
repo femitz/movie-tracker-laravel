@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('movies', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->integer('id_genre');
             $table->integer('id_user');
             $table->timestamps();
         });

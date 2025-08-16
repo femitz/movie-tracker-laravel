@@ -8,12 +8,50 @@ use Inertia\Inertia;
 use App\Models\Genres;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use App\Models\MoviesGenres;
 
 class MoviesController extends Controller
 {
     public function index()
     {
-        return Inertia::render('movies/index', []);
+        $id_user = Auth::user()->id;    
+        
+        // Buscar filmes com seus gêneros
+        $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
+            left join movies_genres mg on m.id = mg.id_movie
+            left join genres g on mg.id_genre = g.id
+            where m.id_user = ?", [$id_user]);
+
+        // Agrupar os dados por filme
+        $movies = [];
+        foreach ($movies_raw as $movie_raw) {
+            $movie_id = $movie_raw->id;
+            
+            if (!isset($movies[$movie_id])) {
+                $movies[$movie_id] = [
+                    'id' => $movie_raw->id,
+                    'name' => $movie_raw->name,
+                    'id_user' => $movie_raw->id_user,
+                    'created_at' => $movie_raw->created_at,
+                    'updated_at' => $movie_raw->updated_at,
+                    'id_genres' => [],
+                    'genres_names' => []
+                ];
+            }
+            
+            // Adicionar gênero se existir
+            if ($movie_raw->id_genre) {
+                $movies[$movie_id]['id_genres'][] = $movie_raw->id_genre;
+                $movies[$movie_id]['genres_names'][] = $movie_raw->genre_name;
+            }
+        }
+        
+        // Converter para array indexado
+        $movies = array_values($movies);
+
+        error_log(json_encode($movies));
+     
+        return Inertia::render('movies/index', ['movies' => $movies]);
     }
 
     public function create()
@@ -25,20 +63,36 @@ class MoviesController extends Controller
     public function store(Request $request)
     {
         $reg = $this->loadRequest($request);
-        // $reg->save();
-        // return redirect()->route('movies.index');
+        $res = $reg->save();
+        
+        // Vou salvar os generos do filme.
+        $id_movie = $reg->id;
+        $id_genres = $request->id_genre;
+        foreach ($id_genres as $id_genre) {
+            $id_genre = (object) $id_genre;
+
+            $reg_genre = new MoviesGenres();
+            $reg_genre->id_movie = $id_movie;
+            $reg_genre->id_genre = $id_genre->id;
+            $reg_genre->id_user = Auth::user()->id;
+            $reg_genre->save();
+        }
+
+        if ($res) {
+            return redirect()->route('movies.index');
+        } else {
+            return redirect()->back()->with('error', 'Error saving movie');
+        }
     }
 
-    private function loadRequest(Request $request)
+    private function loadRequest(Request $request) : Movies
      {
-
         $reg = new Movies();
         if (isset($request->id)) {
             $reg = Movies::find($request->id);
         }
         $reg->name = $request->name;
         $reg->id_user = Auth::user()->id;
-        $reg->save();
         return $reg;
      }
     // public function show(Movie $movie)

@@ -24,7 +24,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const form = useForm({
     name: '',
-    id_genre:'',
+    id_genre: [],
 });
 
 const handleSubmit = () => {
