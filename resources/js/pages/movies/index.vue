@@ -6,6 +6,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { success, error } from '@/lib/Notification';
 import { ref, onMounted } from 'vue';
+import { ApiCall } from '@/lib/Api';
 
 interface Movie {
     id: number;
@@ -36,10 +37,9 @@ onMounted(() => {
 });
 
 const deleteMovie = (id: number) => {
-    axios.delete(route('movies.destroy', { id: id })).then((response) => {
+    ApiCall(route('movies.destroy', { id: id }), 'delete', {}).then((response: any) => {
         if (response.data.success) {
             success('Movie deleted successfully');
-
             localMovies.value = localMovies.value.filter((movie) => movie.id !== id);
             return;
         }
@@ -57,7 +57,7 @@ const deleteMovie = (id: number) => {
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             
             <Link :href="route('movies.create')" class="flex justify-start">
-                <Button>Adicionar</Button>
+                <Button>Add</Button>
             </Link>
 
             <div class="grid gap-4">

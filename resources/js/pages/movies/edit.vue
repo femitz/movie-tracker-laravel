@@ -9,7 +9,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
 import { Multiselect } from 'vue-multiselect';
-import axios from 'axios';
+import { ApiCall } from '@/lib/Api';
 
 interface Genre {
     id: number;
@@ -74,13 +74,12 @@ const submitForm = () => {
         id_genre: form.value.id_genre.map((genre) => ({ id: genre.id })),
     };
 
-    axios.put(route('movies.update', { id: props.movie.id }), formData).then((response) => {
+    ApiCall(route('movies.update', { id: props.movie.id }), 'put', formData).then((response: any) => {
         if (response.data.success) {
             success('Movie updated successfully!');
             isSubmitting.value = false;
             return;
-        } 
-        
+        }
         isSubmitting.value = false;
         error('Error updating movie!');
         return;
@@ -90,6 +89,7 @@ const submitForm = () => {
 const onSelectGenre = (selectedGenres: Genre[]) => {
     form.value.id_genre = selectedGenres;
 };
+
 </script>
 
 <template>
