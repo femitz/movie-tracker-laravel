@@ -77,7 +77,7 @@ const onSelectGenre = (id_genre: any) => {
                         </div>
                     </CardContent>
                     <CardFooter class="relative z-0">
-                        <Button type="submit" class="cursor-pointer">Salvar</Button>
+                        <Button type="submit" class="cursor-pointer">Save</Button>
                     </CardFooter>
                 </Card>
             </form>

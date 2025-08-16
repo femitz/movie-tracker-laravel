@@ -38,12 +38,12 @@ onMounted(() => {
 const deleteMovie = (id: number) => {
     axios.delete(route('movies.destroy', { id: id })).then((response) => {
         if (response.data.success) {
-            success('Filme deletado com sucesso!');
+            success('Movie deleted successfully');
 
             localMovies.value = localMovies.value.filter((movie) => movie.id !== id);
             return;
         }
-        error('Erro ao deletar filme!');
+        error('Error deleting movie!');
         return;
     });
 }
@@ -78,9 +78,9 @@ const deleteMovie = (id: number) => {
                         </div>
                         <div class="flex gap-2">
 
-                            <!-- <Link :href="route('movies.edit', { id: movie.id })">
+                            <Link :href="route('movies.edit', { id: movie.id })">
                                 <Button variant="outline" size="sm">Edit</Button>
-                            </Link> -->
+                            </Link>
 
                             <Button variant="destructive" size="sm" @click="deleteMovie(movie.id)">Delete</Button>
 

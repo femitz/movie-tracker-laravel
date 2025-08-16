@@ -93,20 +93,62 @@ class MoviesController extends Controller
         $reg->id_user = Auth::user()->id;
         return $reg;
      }
-    // public function show(Movie $movie)
-    // {
 
-    // }
+    public function edit($id)
+    {
+        $user = Auth::user();
+        $movie = Movies::find($id);
 
-    // public function edit(Movie $movie)
-    // {
+        if (!$movie || $movie->id_user != $user->id) {
+            abort(404, 'Movie not found');
+        }
 
-    // }
+        // Buscar gêneros do filme
+        $movieGenres = MoviesGenres::where('id_movie', $id)->pluck('id_genre')->toArray();
+        
+        // Buscar todos os gêneros disponíveis
+        $genres = Genres::getGenres();
 
-    // public function update(Request $request, Movie $movie)
-    // {
+        return Inertia::render('movies/edit', [
+            'movie' => [
+                'id' => $movie->id,
+                'name' => $movie->name,
+                'id_genres' => $movieGenres
+            ],
+            'genres' => $genres
+        ]);
+    }
 
-    // }
+    public function update(Request $request, $id)
+    {
+        $user = Auth::user();
+        $movie = Movies::find($id);
+
+        if (!$movie || $movie->id_user != $user->id) {
+            return response()->json(['success' => false, 'message' => 'Movie not found'], 404);
+        }
+
+        // Atualizar nome do filme
+        $movie->name = $request->name;
+        $movie->save();
+
+        // Remover gêneros antigos
+        MoviesGenres::where('id_movie', $id)->delete();
+
+        // Adicionar novos gêneros
+        $id_genres = $request->id_genre;
+        foreach ($id_genres as $id_genre) {
+            $id_genre = (object) $id_genre;
+
+            $reg_genre = new MoviesGenres();
+            $reg_genre->id_movie = $id;
+            $reg_genre->id_genre = $id_genre->id;
+            $reg_genre->id_user = $user->id;
+            $reg_genre->save();
+        }
+
+        return response()->json(['success' => true, 'message' => 'Movie updated successfully']);
+    }
 
     public function destroy($id)
     {
