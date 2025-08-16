@@ -61,11 +61,6 @@ const submitForm = () => {
         return;
     }
 
-    if (form.value.id_genre.length === 0) {
-        error('Select at least one genre!');
-        return;
-    }
-
     isSubmitting.value = true;
 
     // Converter os objetos de gênero para o formato esperado pelo backend

@@ -137,14 +137,16 @@ class MoviesController extends Controller
 
         // Adicionar novos gêneros
         $id_genres = $request->id_genre;
-        foreach ($id_genres as $id_genre) {
-            $id_genre = (object) $id_genre;
+        if ($id_genres && !empty($id_genres)) {
+            foreach ($id_genres as $id_genre) {
+                $id_genre = (object) $id_genre;
 
-            $reg_genre = new MoviesGenres();
-            $reg_genre->id_movie = $id;
-            $reg_genre->id_genre = $id_genre->id;
-            $reg_genre->id_user = $user->id;
-            $reg_genre->save();
+                $reg_genre = new MoviesGenres();
+                $reg_genre->id_movie = $id;
+                $reg_genre->id_genre = $id_genre->id;
+                $reg_genre->id_user = $user->id;
+                $reg_genre->save();
+            }
         }
 
         return response()->json(['success' => true, 'message' => 'Movie updated successfully']);
