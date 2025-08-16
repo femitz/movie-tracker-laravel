@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import Button from '@/components/ui/button/Button.vue';
-import Input from '@/components/ui/input/Input.vue';
-import Label from '@/components/ui/label/Label.vue';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { error, success } from '@/lib/Notification';
 import { type BreadcrumbItem } from '@/types';
@@ -126,6 +127,7 @@ const onSelectGenre = (selectedGenres: Genre[]) => {
                         </div>
                     </CardContent>
                     <CardFooter class="relative z-0 gap-4 space-x-4">
+
                         <Button type="submit" :disabled="isSubmitting" class="flex-1 cursor-pointer">
                             <span v-if="isSubmitting">Saving...</span>
                             <span v-else>Save Changes</span>
