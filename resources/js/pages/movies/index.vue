@@ -51,6 +51,11 @@ const deleteMovie = (id: number) => {
     });
 }
 
+const downloadXlsx = () => {
+    window.open(route('movies.download'), '_blank');
+    success('Download started');
+}
+
 </script>
 
 <template>
@@ -62,6 +67,10 @@ const deleteMovie = (id: number) => {
             <Link :href="route('movies.create')" class="flex justify-start">
                 <Button>Add</Button>
             </Link>
+
+            <div class="flex justify-start">
+                <Button @click="downloadXlsx">Download</Button>
+            </div>
 
             <div class="grid gap-4">
                 <div v-for="movie in localMovies" :key="movie.id" class="border rounded-lg p-4 bg-white shadow-sm">

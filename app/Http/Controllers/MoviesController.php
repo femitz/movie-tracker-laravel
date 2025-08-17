@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\MoviesGenres;
 use Carbon\Carbon;
+use App\Models\XLSXWriter;
 
 class MoviesController extends Controller
 {
@@ -169,4 +170,85 @@ class MoviesController extends Controller
         return response()->json(['success' => true]);
     }
 
+    public function donwloadXlsx()
+    {
+        $id_user = Auth::user()->id;    
+         // Buscar filmes com seus gêneros
+         $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
+         left join movies_genres mg on m.id = mg.id_movie
+         left join genres g on mg.id_genre = g.id
+         where m.id_user = ?", [$id_user]);
+
+        // Agrupar os dados por filme
+        $movies = [];
+        foreach ($movies_raw as $movie_raw) {
+            $movie_id = $movie_raw->id;
+            
+            if (!isset($movies[$movie_id])) {
+                $movies[$movie_id] = [
+                    'id' => $movie_raw->id,
+                    'name' => $movie_raw->name,
+                    'date' => $movie_raw->date,
+                    'genres' => [],
+                    'created_at' => $movie_raw->created_at,
+                    'updated_at' => $movie_raw->updated_at,
+                ];
+            }
+            
+            // Adicionar gênero se existir
+            if ($movie_raw->id_genre) {
+                $movies[$movie_id]['genres'][] = $movie_raw->genre_name;
+            }
+        }
+        
+        foreach ($movies as $key => $movie) {
+            $movies[$key]['genres'] = implode(',', $movie['genres']);
+        }
+        
+        // Converter para array indexado
+        $movies = array_values($movies);
+
+
+        $fname = "movies_".date('Ymd_His').".xlsx";
+
+        $styles = array( 
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],           
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],
+            ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],
+        );
+
+        $header1 = [
+             'id' => 'integer',
+             'name' => 'string',
+              'date' => 'date',
+              'genres' => 'string',
+              'created_at' => 'date',
+              'updated_at' => 'date' ];
+
+        $writer = new XLSXWriter();
+        $writer->setAuthor('Mitz App');
+        $writer->writeSheetRow('Folha', $header1, $styles );
+        $writer->writeSheet($movies,'Folha');            // no headers
+
+        // Salvar o arquivo temporariamente
+        $tempPath = storage_path('app/temp/' . $fname);
+        
+        // Criar diretório se não existir
+        if (!file_exists(dirname($tempPath))) {
+            mkdir(dirname($tempPath), 0755, true);
+        }
+        
+        $writer->writeToFile($tempPath);   
+
+        // Verificar se o arquivo foi criado
+        if (!file_exists($tempPath)) {
+            return response()->json(['error' => 'Failed to create file'], 500);
+        }
+
+        // Retornar o arquivo para download
+        return response()->download($tempPath, $fname)->deleteFileAfterSend();
+    }
 }

@@ -22,6 +22,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('movies/{id}', [MoviesController::class, 'update'])->name('movies.update');
     Route::delete('movies/{id}', [MoviesController::class, 'destroy'])->name('movies.destroy');
 
+    Route::get('movies/download', [MoviesController::class, 'donwloadXlsx'])->name('movies.download');
+
     
 });
 
