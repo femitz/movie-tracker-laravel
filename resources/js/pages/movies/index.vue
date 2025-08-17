@@ -8,6 +8,7 @@ import { success, error } from '@/lib/Notification';
 import { ref, onMounted } from 'vue';
 import { ApiCall } from '@/lib/Api';
 import { formatDateFromDB } from '@/lib/utils';
+import { SquarePen, Trash2 } from 'lucide-vue-next';
 
 interface Movie {
     id: number;
@@ -81,10 +82,10 @@ const deleteMovie = (id: number) => {
                         <div class="flex gap-2">
 
                             <Link :href="route('movies.edit', { id: movie.id })">
-                                <Button variant="outline" size="sm">Edit</Button>
+                                <Button variant="outline" size="sm"> <SquarePen class="w-4 h-4" /></Button>
                             </Link>
 
-                            <Button variant="destructive" size="sm" @click="deleteMovie(movie.id)">Delete</Button>
+                            <Button variant="destructive" size="sm" @click="deleteMovie(movie.id)"><Trash2 class="w-4 h-4" /></Button>
 
                         </div>
                     </div>

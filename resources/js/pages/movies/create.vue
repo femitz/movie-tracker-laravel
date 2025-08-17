@@ -88,7 +88,7 @@ const onSelectGenre = (id_genre: any) => {
 
                             <div class="flex flex-col space-y-1.5">
                                 <Label for="date">Date</Label>
-                                <DatePicker v-model="form.date" dateFormat="dd/mm/yy" />
+                                <DatePicker v-model="form.date" showIcon fluid iconDisplay="input" dateFormat="dd/mm/yy" />
                             </div>
 
                         </div>
