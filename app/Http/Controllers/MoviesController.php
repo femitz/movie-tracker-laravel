@@ -209,7 +209,7 @@ class MoviesController extends Controller
         $movies = array_values($movies);
 
 
-        $fname = "movies_".date('Ymd_His').".xlsx";
+        $fname = "MitzApp_movies_".date('Ymd_His').".xlsx";
 
         $styles = array( 
             ['fill'=>'#FA9884', 'border'=>'left,right,top,bottom', 'border-color'=>'#000000', 'border-style'=>'thin' , 'font-style'=>'bold'],

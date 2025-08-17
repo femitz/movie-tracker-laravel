@@ -64,12 +64,14 @@ const downloadXlsx = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             
-            <Link :href="route('movies.create')" class="flex justify-start">
-                <Button>Add</Button>
-            </Link>
+            <div class="flex justify-start gap-2">
+                <Link :href="route('movies.create')" class="flex justify-start">
+                    <Button>Add</Button>
+                </Link>
 
-            <div class="flex justify-start">
-                <Button @click="downloadXlsx">Download</Button>
+                <div class="flex justify-start">
+                    <Button @click="downloadXlsx" variant="secondary">Download XLSX</Button>
+                </div>
             </div>
 
             <div class="grid gap-4">
