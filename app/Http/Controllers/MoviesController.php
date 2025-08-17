@@ -173,13 +173,11 @@ class MoviesController extends Controller
     public function donwloadXlsx()
     {
         $id_user = Auth::user()->id;    
-         // Buscar filmes com seus gêneros
          $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
          left join movies_genres mg on m.id = mg.id_movie
          left join genres g on mg.id_genre = g.id
          where m.id_user = ?", [$id_user]);
 
-        // Agrupar os dados por filme
         $movies = [];
         foreach ($movies_raw as $movie_raw) {
             $movie_id = $movie_raw->id;
@@ -195,7 +193,6 @@ class MoviesController extends Controller
                 ];
             }
             
-            // Adicionar gênero se existir
             if ($movie_raw->id_genre) {
                 $movies[$movie_id]['genres'][] = $movie_raw->genre_name;
             }
@@ -205,7 +202,6 @@ class MoviesController extends Controller
             $movies[$key]['genres'] = implode(',', $movie['genres']);
         }
         
-        // Converter para array indexado
         $movies = array_values($movies);
 
 

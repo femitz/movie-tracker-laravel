@@ -170,4 +170,44 @@
   
 }
 
+.multiselect .multiselect__tags {
+    background-color: var(--background);
+    border-color: var(--border);
+    color: var(--foreground);
+}
+
+.multiselect__tags .multiselect__single {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+.multiselect .multiselect__input {
+    background-color: var(--background);
+    color: var(--foreground);
+}
+
+.multiselect .multiselect__content-wrapper {
+    background-color: var(--background);
+    color: var(--foreground);
+    border-color: var(--border);
+}
+
+.multiselect .multiselect__option--selected {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+}
+
+.multiselect .multiselect__option--highlight {
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+}
+
+.multiselect .multiselect__option {
+    color: var(--foreground);
+}
+
+.multiselect .multiselect__option:hover {
+    background-color: var(--muted);
+}
+
 

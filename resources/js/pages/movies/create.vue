@@ -83,6 +83,8 @@ const onSelectGenre = (id_genre: any) => {
                                     @input="onSelectGenre"
                                     :multiple="true"
                                     :close-on-select="false"
+                                    selectLabel=""
+                                    deselectLabel="Selected"
                                 />
                             </div>
 
