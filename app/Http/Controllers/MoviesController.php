@@ -22,7 +22,7 @@ class MoviesController extends Controller
         $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
             left join movies_genres mg on m.id = mg.id_movie
             left join genres g on mg.id_genre = g.id
-            where m.id_user = ?", [$id_user]);
+            where m.id_user = ? order by m.date desc, m.id desc", [$id_user]);
 
         // Agrupar os dados por filme
         $movies = [];
