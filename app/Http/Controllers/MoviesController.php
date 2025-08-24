@@ -247,4 +247,11 @@ class MoviesController extends Controller
         // Retornar o arquivo para download
         return response()->download($tempPath, $fname)->deleteFileAfterSend();
     }
+
+    public function suggestions()
+    {
+        $id_user = Auth::user()->id;    
+        $movies = Movies::where('id_user', $id_user)->orderBy('date', 'desc')->limit(50)->get();
+        return Inertia::render('movies/suggestions', ['movies' => $movies]);
+    }
 }

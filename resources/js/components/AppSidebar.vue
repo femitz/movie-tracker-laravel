@@ -19,6 +19,11 @@ const mainNavItems: NavItem[] = [
         href: '/movies',
         icon: MonitorPlay,
     },
+    {
+        title: 'Suggestions',
+        href: '/movies/suggestions',
+        icon: MonitorPlay,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

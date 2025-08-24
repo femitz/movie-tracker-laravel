@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { GoogleGenAI } from "@google/genai";
 
  /**
          * @param {String} tipo
@@ -23,4 +23,19 @@ import axios from 'axios';
     } catch (error) {
         throw error;
     }
+}
+
+export async function GeminiCall(prompt: string) {
+
+    try {
+        const api_key = import.meta.env.VITE_GEMINI_API;
+
+        const ai = new GoogleGenAI({apiKey: api_key});
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+        });
+        return response.text;
+    }
+    catch (error) {}
 }

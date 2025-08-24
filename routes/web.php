@@ -24,6 +24,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('movies/download', [MoviesController::class, 'donwloadXlsx'])->name('movies.download');
 
+    Route::get('movies/suggestions', [MoviesController::class, 'suggestions'])->name('movies.suggestions');
+
     
 });
 
