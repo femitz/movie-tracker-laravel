@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\MoviesGenres;
 use Carbon\Carbon;
 use App\Models\XLSXWriter;
+use App\Models\LogsGemini;
 
 class MoviesController extends Controller
 {
@@ -253,5 +254,18 @@ class MoviesController extends Controller
         $id_user = Auth::user()->id;    
         $movies = Movies::where('id_user', $id_user)->orderBy('date', 'desc')->limit(50)->get();
         return Inertia::render('movies/suggestions', ['movies' => $movies]);
+    }
+
+    public function saveLogGemini(Request $request)
+    {
+        error_log(json_encode($request->all()));
+        $log = new LogsGemini();
+        $log->prompt = $request->prompt;
+        $log->response = json_encode($request->response);
+        $log->response_text = json_encode($request->response_text);
+        $log->id_user = Auth::user()->id;
+        $log->model = $request->model;
+        $log->save();
+        return response()->json(['success' => true]);
     }
 }

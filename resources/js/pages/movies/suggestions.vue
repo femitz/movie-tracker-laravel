@@ -3,12 +3,13 @@ import Button from '@/components/ui/button/Button.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { success, info } from '@/lib/Notification';
+import { success, info, error } from '@/lib/Notification';
 import { ref, onMounted } from 'vue';
 import { GeminiCall } from '@/lib/Api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { ApiCall } from '@/lib/Api';
 
 interface Movie {
     id: number;
@@ -52,7 +53,7 @@ const getSuggestions = async () => {
    info("Getting suggestions... Please wait...");
 
     const prompt = `
-    Based on my list of the 50 most recent movies I've watched, please suggest a list of ${limit.value} films for me.
+    Based on my list of the ${localMovies.value.length} most recent movies I've watched, please suggest a list of ${limit.value} films for me.
 
     ${localMovies.value.map(movie => `- ${movie.name}`).join('\n')}
     Remember that your response must be in JSON format and contain a list of objects, as it will be directed to another user for rendering in HTML. Each object in the list should represent a movie suggestion and follow the structure below:
@@ -72,13 +73,32 @@ const getSuggestions = async () => {
     ]
     `;
 
-    var response = await GeminiCall(prompt);
-
+    const result = await GeminiCall(prompt);
+    
+    if (!result) {
+        error("Failed to get suggestions. Please try again.");
+        console.log('error', result);
+        return;
+    }
+    
+    const [response, response_gemini, model] = result;
+    
     success("Suggestions received successfully")
 
-    response = response?.replace(/```json/g, '').replace(/```/g, '');
+    const clean_response = (response as string)?.replace(/```json/g, '').replace(/```/g, '');
 
-    suggestions.value = JSON.parse(response || '[]');
+    suggestions.value = JSON.parse(clean_response || '[]');
+
+    try {
+        await ApiCall(route('movies.save-log-gemini'), 'POST', {
+            prompt: prompt,
+            response: response_gemini,
+            response_text: response,
+            model: model,
+        });
+    } catch (error) {
+        console.log('error save log gemini', error);
+    }
 }
 
 </script>
@@ -93,6 +113,11 @@ const getSuggestions = async () => {
                 <Card>
                     <CardHeader>
                         <CardTitle>Suggestions</CardTitle>
+                        <CardDescription>
+                            <p>
+                                Based on my list of the 50 most recent movies I've watched, please suggest a list of {{ limit }} films for me.
+                            </p>
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                     <div class="flex flex-col space-y-1.5">
@@ -100,7 +125,7 @@ const getSuggestions = async () => {
                             <Label for="limit">Limit</Label>
                             <Input id="limit" type="number" placeholder="Limit" v-model="limit" />
                         </div>
-                        <Button @click="getSuggestions()">Get Suggestions</Button> 
+                        <Button @click="getSuggestions()" class="cursor-pointer">Get Suggestions</Button> 
                     </div>
 
                     <div v-if="suggestions.length > 0" v-for="suggestion in suggestions" :key="suggestion.movie_title" class="border rounded-lg p-4 bg-white shadow-sm mt-4">

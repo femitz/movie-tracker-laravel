@@ -66,11 +66,11 @@ const downloadXlsx = () => {
             
             <div class="flex justify-start gap-2">
                 <Link :href="route('movies.create')" class="flex justify-start">
-                    <Button>Add</Button>
+                    <Button class="cursor-pointer">Add</Button>
                 </Link>
 
                 <div class="flex justify-start">
-                    <Button @click="downloadXlsx" variant="secondary">Download XLSX</Button>
+                    <Button @click="downloadXlsx" class="cursor-pointer" variant="secondary">Download XLSX</Button>
                 </div>
             </div>
 
@@ -93,10 +93,10 @@ const downloadXlsx = () => {
                         <div class="flex gap-2">
 
                             <Link :href="route('movies.edit', { id: movie.id })">
-                                <Button variant="outline" size="sm"> <SquarePen class="w-4 h-4" /></Button>
+                                <Button variant="outline" size="sm" class="cursor-pointer"> <SquarePen class="w-4 h-4" /></Button>
                             </Link>
 
-                            <Button variant="destructive" size="sm" @click="deleteMovie(movie.id)"><Trash2 class="w-4 h-4" /></Button>
+                            <Button variant="destructive" size="sm" class="cursor-pointer" @click="deleteMovie(movie.id)"><Trash2 class="w-4 h-4" /></Button>
 
                         </div>
                     </div>

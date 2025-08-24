@@ -132,7 +132,7 @@ const onSelectGenre = (selectedGenres: Genre[]) => {
                             <span v-else>Save Changes</span>
                         </Button>
 
-                        <Button type="button" variant="outline" @click="router.visit(route('movies.index'))" :disabled="isSubmitting">
+                        <Button type="button" class="cursor-pointer" variant="outline" @click="router.visit(route('movies.index'))" :disabled="isSubmitting">
                             Cancel
                         </Button>
                     </CardFooter>
