@@ -258,7 +258,6 @@ class MoviesController extends Controller
 
     public function saveLogGemini(Request $request)
     {
-        error_log(json_encode($request->all()));
         $log = new LogsGemini();
         $log->prompt = $request->prompt;
         $log->response = json_encode($request->response);
