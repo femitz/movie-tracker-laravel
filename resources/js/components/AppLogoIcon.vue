@@ -15,7 +15,7 @@ defineProps<Props>();
 <template>
     <img 
         src="/favicon.ico" 
-        alt="Logo" 
+        alt="Mitz App Logo" 
         :class="className" 
         v-bind="$attrs"
     />
