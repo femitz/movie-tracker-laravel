@@ -6,7 +6,7 @@ use App\Http\Controllers\MoviesController;
 
 
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return redirect()->route('login');
 })->middleware('guest')->name('home');
 
 Route::get('dashboard', function () {
