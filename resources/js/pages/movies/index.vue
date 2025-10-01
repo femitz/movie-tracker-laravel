@@ -5,10 +5,10 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
 import axios from 'axios';
 import { success, error } from '@/lib/Notification';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { ApiCall } from '@/lib/Api';
 import { formatDateFromDB } from '@/lib/utils';
-import { SquarePen, Trash2 } from 'lucide-vue-next';
+import { SquarePen, Trash2, Loader2 } from 'lucide-vue-next';
 
 interface Movie {
     id: number;
@@ -21,6 +21,14 @@ interface Movie {
     genres_names: string[];
 }
 
+interface Pagination {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+    has_more: boolean;
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Movies',
@@ -30,14 +38,89 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 const props = defineProps<{
     movies: Movie[];
+    pagination: Pagination;
 }>();
 
 const localMovies = ref<Movie[]>([]);
+const currentPage = ref(1);
+const isLoading = ref(false);
+const hasMore = ref(true);
+const loadMoreTrigger = ref<HTMLElement | null>(null);
 
 // Inicializar a lista local quando o componente for montado
 onMounted(() => {
     localMovies.value = [...props.movies];
+    currentPage.value = props.pagination.current_page;
+    hasMore.value = props.pagination.has_more;
+    
+    // Configurar Intersection Observer após o próximo tick para garantir que o DOM está renderizado
+    nextTick(() => {
+        setupInfiniteScroll();
+    });
 });
+
+onUnmounted(() => {
+    if (observer) {
+        observer.disconnect();
+    }
+});
+
+// watcher para reconfigurar o observer quando o trigger for atualizado
+watch(loadMoreTrigger, (newTrigger) => {
+    if (newTrigger && hasMore.value) {
+        nextTick(() => {
+            setupInfiniteScroll();
+        });
+    }
+});
+
+let observer: IntersectionObserver | null = null;
+
+const setupInfiniteScroll = () => {
+    if (observer) {
+        observer.disconnect();
+    }
+    
+    observer = new IntersectionObserver(
+        (entries) => {
+            if (entries[0].isIntersecting && hasMore.value && !isLoading.value) {
+                loadMoreMovies();
+            }
+        },
+        { threshold: 0.1 }
+    );
+
+    if (loadMoreTrigger.value) {
+        observer.observe(loadMoreTrigger.value);
+    }
+};
+
+const loadMoreMovies = async () => {
+    if (isLoading.value || !hasMore.value) return;
+
+    isLoading.value = true;
+    currentPage.value += 1;
+
+    try {
+        const response = await axios.get(route('movies.api.index'), {
+            params: {
+                page: currentPage.value,
+                per_page: props.pagination.per_page
+            }
+        });
+
+        const { movies, pagination } = response.data;
+        
+        localMovies.value = [...localMovies.value, ...movies];
+        hasMore.value = pagination.has_more;
+    } catch (err) {
+        console.error('Error loading more movies:', err);
+        error('Error loading more movies');
+        currentPage.value -= 1; // Revert page on error
+    } finally {
+        isLoading.value = false;
+    }
+};
 
 const deleteMovie = (id: number) => {
     ApiCall(route('movies.destroy', { id: id }), 'delete', {}).then((response: any) => {
@@ -100,6 +183,23 @@ const downloadXlsx = () => {
 
                         </div>
                     </div>
+                </div>
+                
+                <div v-if="isLoading" class="flex justify-center py-4">
+                    <div class="flex items-center gap-2 text-gray-600">
+                        <Loader2 class="w-5 h-5 animate-spin" />
+                        <span>Loading more movies...</span>
+                    </div>
+                </div>
+                
+                <div 
+                    v-if="hasMore && !isLoading" 
+                    ref="loadMoreTrigger" 
+                    class="h-4"
+                ></div>
+                
+                <div v-if="!hasMore && localMovies.length > 0" class="text-center py-4 text-gray-500">
+                    All movies have been loaded
                 </div>
                 
                 <div v-if="localMovies.length === 0" class="text-center py-8 text-gray-500">
