@@ -333,6 +333,82 @@ class MoviesController extends Controller
         return Inertia::render('movies/suggestions', ['movies' => $movies]);
     }
 
+    public function search(Request $request)
+    {
+        $id_user = Auth::user()->id;
+        $searchTerm = $request->get('q', '');
+        
+        if (empty($searchTerm)) {
+            return response()->json([
+                'movies' => [],
+                'pagination' => [
+                    'current_page' => 1,
+                    'per_page' => 10,
+                    'total' => 0,
+                    'last_page' => 1,
+                    'has_more' => false
+                ]
+            ]);
+        }
+        
+        // Parâmetros de paginação
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 10);
+        $offset = ($page - 1) * $perPage;
+        
+        // Buscar total de filmes que correspondem à pesquisa
+        $totalMovies = DB::selectOne("SELECT COUNT(DISTINCT m.id) as total FROM movies m WHERE m.id_user = ? AND m.name LIKE ?", [$id_user, "%{$searchTerm}%"]);
+        $total = $totalMovies->total;
+        
+        // Buscar filmes únicos que correspondem à pesquisa
+        $movies = DB::select("SELECT DISTINCT m.id, m.name, m.id_user, m.date, m.created_at, m.updated_at 
+            FROM movies m 
+            WHERE m.id_user = ? AND m.name LIKE ? 
+            ORDER BY m.date desc, m.id desc 
+            LIMIT ? OFFSET ?", 
+            [$id_user, "%{$searchTerm}%", $perPage, $offset]);
+
+        // Para cada filme, buscar seus gêneros
+        $result = [];
+        foreach ($movies as $movie) {
+            $genres = DB::select("SELECT mg.id_genre, g.name as genre_name, g.id as genre_id 
+                FROM movies_genres mg 
+                LEFT JOIN genres g ON mg.id_genre = g.id 
+                WHERE mg.id_movie = ?", [$movie->id]);
+            
+            $movieData = [
+                'id' => $movie->id,
+                'name' => $movie->name,
+                'id_user' => $movie->id_user,
+                'date' => $movie->date,
+                'created_at' => $movie->created_at,
+                'updated_at' => $movie->updated_at,
+                'id_genres' => [],
+                'genres_names' => []
+            ];
+            
+            foreach ($genres as $genre) {
+                if ($genre->id_genre) {
+                    $movieData['id_genres'][] = $genre->id_genre;
+                    $movieData['genres_names'][] = $genre->genre_name;
+                }
+            }
+            
+            $result[] = $movieData;
+        }
+        
+        return response()->json([
+            'movies' => $result,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'last_page' => ceil($total / $perPage),
+                'has_more' => $page < ceil($total / $perPage)
+            ]
+        ]);
+    }
+
     public function saveLogGemini(Request $request)
     {
         $log = new LogsGemini();

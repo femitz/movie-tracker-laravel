@@ -8,7 +8,7 @@ import { success, error } from '@/lib/Notification';
 import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue';
 import { ApiCall } from '@/lib/Api';
 import { formatDateFromDB } from '@/lib/utils';
-import { SquarePen, Trash2, Loader2 } from 'lucide-vue-next';
+import { SquarePen, Trash2, Loader2, Search } from 'lucide-vue-next';
 
 interface Movie {
     id: number;
@@ -46,6 +46,9 @@ const currentPage = ref(1);
 const isLoading = ref(false);
 const hasMore = ref(true);
 const loadMoreTrigger = ref<HTMLElement | null>(null);
+const searchTerm = ref('');
+const isSearching = ref(false);
+const searchTimeout = ref<number | null>(null);
 
 // Inicializar a lista local quando o componente for montado
 onMounted(() => {
@@ -96,7 +99,7 @@ const setupInfiniteScroll = () => {
 };
 
 const loadMoreMovies = async () => {
-    if (isLoading.value || !hasMore.value) return;
+    if (isLoading.value || !hasMore.value || isSearching.value) return;
 
     isLoading.value = true;
     currentPage.value += 1;
@@ -111,7 +114,18 @@ const loadMoreMovies = async () => {
 
         const { movies, pagination } = response.data;
         
-        localMovies.value = [...localMovies.value, ...movies];
+        // Verificar e remover duplicatas por ID
+        const uniqueMovies = movies.filter((movie: Movie, index: number, self: Movie[]) => 
+            index === self.findIndex(m => m.id === movie.id)
+        );
+        
+        // Combinar com lista existente e remover duplicatas
+        const combinedMovies = [...localMovies.value, ...uniqueMovies];
+        const finalMovies = combinedMovies.filter((movie: Movie, index: number, self: Movie[]) => 
+            index === self.findIndex(m => m.id === movie.id)
+        );
+        
+        localMovies.value = finalMovies;
         hasMore.value = pagination.has_more;
     } catch (err) {
         console.error('Error loading more movies:', err);
@@ -121,6 +135,59 @@ const loadMoreMovies = async () => {
         isLoading.value = false;
     }
 };
+
+const searchMovies = async (term: string) => {
+    if (searchTimeout.value) {
+        clearTimeout(searchTimeout.value);
+    }
+
+    searchTimeout.value = setTimeout(async () => {
+        if (term.trim() === '') {
+            // Se o termo de pesquisa estiver vazio, recarregar a lista original
+            localMovies.value = [...props.movies];
+            currentPage.value = props.pagination.current_page;
+            hasMore.value = props.pagination.has_more;
+            isSearching.value = false;
+            return;
+        }
+
+        isSearching.value = true;
+        isLoading.value = true;
+
+        try {
+            const response = await axios.get(route('movies.search'), {
+                params: {
+                    q: term,
+                    page: 1,
+                    per_page: props.pagination.per_page
+                }
+            });
+
+            const { movies, pagination } = response.data;
+            
+            // Verificar e remover duplicatas por ID
+            const uniqueMovies = movies.filter((movie: Movie, index: number, self: Movie[]) => 
+                index === self.findIndex(m => m.id === movie.id)
+            );
+            
+            // Sempre substituir completamente a lista para evitar duplicatas
+            localMovies.value = [...uniqueMovies];
+            currentPage.value = pagination.current_page;
+            hasMore.value = pagination.has_more;
+        } catch (err) {
+            console.error('Error searching movies:', err);
+            error('Error searching movies');
+        } finally {
+            isLoading.value = false;
+            isSearching.value = false;
+        }
+    }, 300); // Debounce de 300ms
+};
+
+// Watcher para o termo de pesquisa
+watch(searchTerm, (newTerm) => {
+    searchMovies(newTerm);
+});
 
 const deleteMovie = (id: number) => {
     ApiCall(route('movies.destroy', { id: id }), 'delete', {}).then((response: any) => {
@@ -147,13 +214,31 @@ const downloadXlsx = () => {
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
             
-            <div class="flex justify-start gap-2">
-                <Link :href="route('movies.create')" class="flex justify-start">
-                    <Button class="cursor-pointer">Add</Button>
-                </Link>
+            <div class="flex justify-between items-center gap-4">
+                <div class="flex gap-2">
+                    <Link :href="route('movies.create')" class="flex justify-start">
+                        <Button class="cursor-pointer">Add</Button>
+                    </Link>
 
-                <div class="flex justify-start">
-                    <Button @click="downloadXlsx" class="cursor-pointer" variant="secondary">Download XLSX</Button>
+                    <div class="flex justify-start">
+                        <Button @click="downloadXlsx" class="cursor-pointer" variant="secondary">Download XLSX</Button>
+                    </div>
+                </div>
+
+                <!-- Campo de pesquisa -->
+                <div class="relative flex-1 max-w-md">
+                    <div class="relative">
+                        <Search class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                            v-model="searchTerm"
+                            type="text"
+                            placeholder="Pesquisar filmes..."
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
+                        />
+                        <div v-if="isSearching" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <Loader2 class="w-4 h-4 animate-spin text-gray-400" />
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -203,7 +288,12 @@ const downloadXlsx = () => {
                 </div>
                 
                 <div v-if="localMovies.length === 0" class="text-center py-8 text-gray-500">
-                    No movies found. Click on "Add" to create your first movie.
+                    <div v-if="searchTerm.trim() === ''">
+                        No movies found. Click on "Add" to create your first movie.
+                    </div>
+                    <div v-else>
+                        No movies found for "{{ searchTerm }}". Try a different search term.
+                    </div>
                 </div>
             </div>
         </div>

@@ -17,6 +17,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Movies
     Route::get('movies', [MoviesController::class, 'index'])->name('movies.index');
     Route::get('movies/api', [MoviesController::class, 'apiIndex'])->name('movies.api.index');
+    Route::get('movies/search', [MoviesController::class, 'search'])->name('movies.search');
     Route::get('movies/create', [MoviesController::class, 'create'])->name('movies.create');
     Route::post('movies', [MoviesController::class, 'store'])->name('movies.store');
     Route::get('movies/{id}/edit', [MoviesController::class, 'edit'])->name('movies.edit');
