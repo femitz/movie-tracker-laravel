@@ -148,7 +148,7 @@ const getSuggestions = async () => {
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="text-lg font-semibold text-gray-900">{{ suggestion.movie_title }}</h3>
-                                <p class="text-sm text-gray-500">{{ suggestion.summary }}</p>
+                                <p class="text-base text-gray-500">{{ suggestion.summary }}</p>
                                 <br>
                                 <!-- as vezes nao tem o why_you_ll_like_it -->
                                 <p class="text-sm text-gray-500">{{ suggestion.why_you_ll_like_it }}</p>
