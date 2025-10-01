@@ -15,15 +15,24 @@ use App\Models\LogsGemini;
 
 class MoviesController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $id_user = Auth::user()->id;    
+        $id_user = Auth::user()->id;
         
-        // Buscar filmes com seus gêneros
+        // Parâmetros de paginação
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 10);
+        $offset = ($page - 1) * $perPage;
+        
+        // Buscar total de filmes para paginação
+        $totalMovies = DB::selectOne("SELECT COUNT(DISTINCT m.id) as total FROM movies m WHERE m.id_user = ?", [$id_user]);
+        $total = $totalMovies->total;
+        
+        // Buscar filmes com seus gêneros (com LIMIT e OFFSET)
         $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
             left join movies_genres mg on m.id = mg.id_movie
             left join genres g on mg.id_genre = g.id
-            where m.id_user = ? order by m.date desc, m.id desc", [$id_user]);
+            where m.id_user = ? order by m.date desc, m.id desc LIMIT ? OFFSET ?", [$id_user, $perPage, $offset]);
 
         // Agrupar os dados por filme
         $movies = [];
@@ -53,7 +62,75 @@ class MoviesController extends Controller
         // Converter para array indexado
         $movies = array_values($movies);
      
-        return Inertia::render('movies/index', ['movies' => $movies]);
+        return Inertia::render('movies/index', [
+            'movies' => $movies,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'last_page' => ceil($total / $perPage),
+                'has_more' => $page < ceil($total / $perPage)
+            ]
+        ]);
+    }
+
+    public function apiIndex(Request $request)
+    {
+        $id_user = Auth::user()->id;
+        
+        // Parâmetros de paginação
+        $page = $request->get('page', 1);
+        $perPage = $request->get('per_page', 10);
+        $offset = ($page - 1) * $perPage;
+        
+        // Buscar total de filmes para paginação
+        $totalMovies = DB::selectOne("SELECT COUNT(DISTINCT m.id) as total FROM movies m WHERE m.id_user = ?", [$id_user]);
+        $total = $totalMovies->total;
+        
+        // Buscar filmes com seus gêneros (com LIMIT e OFFSET)
+        $movies_raw = DB::select("select m.*, mg.id_genre, g.name as genre_name, g.id as genre_id from movies m
+            left join movies_genres mg on m.id = mg.id_movie
+            left join genres g on mg.id_genre = g.id
+            where m.id_user = ? order by m.date desc, m.id desc LIMIT ? OFFSET ?", [$id_user, $perPage, $offset]);
+
+        // Agrupar os dados por filme
+        $movies = [];
+        foreach ($movies_raw as $movie_raw) {
+            $movie_id = $movie_raw->id;
+            
+            if (!isset($movies[$movie_id])) {
+                $movies[$movie_id] = [
+                    'id' => $movie_raw->id,
+                    'name' => $movie_raw->name,
+                    'id_user' => $movie_raw->id_user,
+                    'date' => $movie_raw->date,
+                    'created_at' => $movie_raw->created_at,
+                    'updated_at' => $movie_raw->updated_at,
+                    'id_genres' => [],
+                    'genres_names' => []
+                ];
+            }
+            
+            // Adicionar gênero se existir
+            if ($movie_raw->id_genre) {
+                $movies[$movie_id]['id_genres'][] = $movie_raw->id_genre;
+                $movies[$movie_id]['genres_names'][] = $movie_raw->genre_name;
+            }
+        }
+        
+        // Converter para array indexado
+        $movies = array_values($movies);
+        
+        return response()->json([
+            'movies' => $movies,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total' => $total,
+                'last_page' => ceil($total / $perPage),
+                'has_more' => $page < ceil($total / $perPage)
+            ]
+        ]);
     }
 
     public function create()
