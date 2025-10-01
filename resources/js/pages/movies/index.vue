@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Button from '@/components/ui/button/Button.vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Text } from '@/components/ui/text';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link } from '@inertiajs/vue3';
@@ -244,37 +246,38 @@ const downloadXlsx = () => {
             </div>
 
             <div class="grid gap-4">
-                <div v-for="movie in localMovies" :key="movie.id" class="border rounded-lg p-4 bg-white shadow-sm">
-                    <div class="flex justify-between items-start">
+                <Card v-for="movie in localMovies" :key="movie.id" class="w-full">
+                    <CardHeader class="pb-3">
+                        <div class="flex justify-between items-start">
+                            <CardTitle class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ movie.name }}</CardTitle>
+                            <div class="flex gap-2">
+                                <Link :href="route('movies.edit', { id: movie.id })">
+                                    <Button variant="outline" size="sm" class="cursor-pointer"> <SquarePen class="w-4 h-4" /></Button>
+                                </Link>
+                                <Button variant="destructive" size="sm" class="cursor-pointer" @click="deleteMovie(movie.id)"><Trash2 class="w-4 h-4" /></Button>
+                            </div>
+                        </div>
+                    </CardHeader>
+                    <CardContent class="pt-0">
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ movie.name }}</h3>
-                            <div class="mt-2">
-                                <span class="text-sm text-gray-600">Genres: </span>
-                                <span v-if="movie.genres_names && movie.genres_names.length > 0" class="text-sm text-gray-800">
+                            <Text size="sm" variant="muted">Genres: 
+                                <span v-if="movie.genres_names && movie.genres_names.length > 0"> 
                                     {{ movie.genres_names.join(', ') }}
                                 </span>
-                                <span v-else class="text-sm text-gray-400">No genres</span>
-                            </div>
-                            <div class="mt-1 text-xs text-gray-500">
-                                Watched at: {{ formatDateFromDB(movie.date) }}
-                            </div>
+                                <span v-else >No genres</span>
+                            </Text>
                         </div>
-                        <div class="flex gap-2">
+                        <Text size="xs" variant="muted">
+                            Watched at: {{ formatDateFromDB(movie.date) }}
+                        </Text>
 
-                            <Link :href="route('movies.edit', { id: movie.id })">
-                                <Button variant="outline" size="sm" class="cursor-pointer"> <SquarePen class="w-4 h-4" /></Button>
-                            </Link>
-
-                            <Button variant="destructive" size="sm" class="cursor-pointer" @click="deleteMovie(movie.id)"><Trash2 class="w-4 h-4" /></Button>
-
-                        </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
                 
                 <div v-if="isLoading" class="flex justify-center py-4">
-                    <div class="flex items-center gap-2 text-gray-600">
+                    <div class="flex items-center gap-2">
                         <Loader2 class="w-5 h-5 animate-spin" />
-                        <span>Loading more movies...</span>
+                        <Text variant="muted">Loading more movies...</Text>
                     </div>
                 </div>
                 
@@ -284,16 +287,16 @@ const downloadXlsx = () => {
                     class="h-4"
                 ></div>
                 
-                <div v-if="!hasMore && localMovies.length > 0" class="text-center py-4 text-gray-500">
-                    All movies have been loaded
+                <div v-if="!hasMore && localMovies.length > 0" class="text-center py-4">
+                    <Text variant="muted">All movies have been loaded</Text>
                 </div>
                 
-                <div v-if="localMovies.length === 0" class="text-center py-8 text-gray-500">
+                <div v-if="localMovies.length === 0" class="text-center py-8">
                     <div v-if="searchTerm.trim() === ''">
-                        No movies found. Click on "Add" to create your first movie.
+                        <Text variant="muted">No movies found. Click on "Add" to create your first movie.</Text>
                     </div>
                     <div v-else>
-                        No movies found for "{{ searchTerm }}". Try a different search term.
+                        <Text variant="muted">No movies found for "{{ searchTerm }}". Try a different search term.</Text>
                     </div>
                 </div>
             </div>
