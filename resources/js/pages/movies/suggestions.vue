@@ -3,7 +3,7 @@ import Button from '@/components/ui/button/Button.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/vue3';
-import { success, info, error } from '@/lib/Notification';
+import { success, info, error, loading, dismissToast } from '@/lib/Notification';
 import { ref, onMounted } from 'vue';
 import { GeminiCall } from '@/lib/Api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,61 +43,75 @@ const limit = ref(10);
 
 const suggestions = ref<Suggestion[]>([]);
 const localMovies = ref<Movie[]>([]);
+const isLoading = ref(false);
 
 onMounted(() => {
     localMovies.value = [...props.movies];
 });
 
 const getSuggestions = async () => {
-
-   info("Getting suggestions... Please wait...");
-
-    const prompt = `
-    Based on my list of the ${localMovies.value.length} most recent movies I've watched, please suggest a list of ${limit.value} films for me.
-
-    ${localMovies.value.map(movie => `- ${movie.name}`).join('\n')}
-    Remember that your response must be in JSON format and contain a list of objects, as it will be directed to another user for rendering in HTML. Each object in the list should represent a movie suggestion and follow the structure below:
-
-    [
-    {
-        "movie_title": "[Name of the movie]",
-        "summary": "[A concise plot summary, no more than 3 lines.]",
-        "why_you_ll_like_it": "[A specific reason why this film aligns with my tastes, based on the movies I've watched.]"
-    },
-    {
-        "movie_title": "[Name of the movie]",
-        "summary": "[A concise plot summary, no more than 3 lines.]",
-        "why_you_ll_like_it": "[A specific reason why this film aligns with my tastes, based on the movies I've watched.]"
-    }
-    ... (up to ${limit.value} objects)
-    ]
-    `;
-
-    const result = await GeminiCall(prompt);
+    isLoading.value = true;
     
-    if (!result) {
-        error("Failed to get suggestions. Please try again.");
-        console.log('error', result);
-        return;
-    }
-    
-    const [response, response_gemini, model] = result;
-    
-    success("Suggestions received successfully")
-
-    const clean_response = (response as string)?.replace(/```json/g, '').replace(/```/g, '');
-
-    suggestions.value = JSON.parse(clean_response || '[]');
+    // Captura o ID do toast de loading para poder fechá-lo depois
+    const loadingToastId = loading("Getting suggestions... Please wait...");
 
     try {
-        await ApiCall(route('movies.save-log-gemini'), 'POST', {
-            prompt: prompt,
-            response: response_gemini,
-            response_text: response,
-            model: model,
-        });
-    } catch (error) {
-        console.log('error save log gemini', error);
+        const prompt = `
+        Based on my list of the ${localMovies.value.length} most recent movies I've watched, please suggest a list of ${limit.value} films for me.
+
+        ${localMovies.value.map(movie => `- ${movie.name}`).join('\n')}
+        Remember that your response must be in JSON format and contain a list of objects, as it will be directed to another user for rendering in HTML. Each object in the list should represent a movie suggestion and follow the structure below:
+
+        [
+        {
+            "movie_title": "[Name of the movie]",
+            "summary": "[A concise plot summary, no more than 3 lines.]",
+            "why_you_ll_like_it": "[A specific reason why this film aligns with my tastes, based on the movies I've watched.]"
+        },
+        {
+            "movie_title": "[Name of the movie]",
+            "summary": "[A concise plot summary, no more than 3 lines.]",
+            "why_you_ll_like_it": "[A specific reason why this film aligns with my tastes, based on the movies I've watched.]"
+        }
+        ... (up to ${limit.value} objects)
+        ]
+        `;
+
+        const result = await GeminiCall(prompt);
+        
+        if (!result) {
+            // Fecha o toast de loading e mostra erro
+            dismissToast(loadingToastId);
+            error("Failed to get suggestions. Please try again.");
+            console.log('error', result);
+            return;
+        }
+        
+        const [response, response_gemini, model] = result;
+        
+        dismissToast(loadingToastId);
+        success("Suggestions received successfully");
+
+        const clean_response = (response as string)?.replace(/```json/g, '').replace(/```/g, '');
+
+        suggestions.value = JSON.parse(clean_response || '[]');
+
+        try {
+            await ApiCall(route('movies.save-log-gemini'), 'POST', {
+                prompt: prompt,
+                response: response_gemini,
+                response_text: response,
+                model: model,
+            });
+        } catch (error) {
+            console.log('error save log gemini', error);
+        }
+    } catch (err) {
+        dismissToast(loadingToastId);
+        error("An error occurred while getting suggestions. Please try again.");
+        console.log('error', err);
+    } finally {
+        isLoading.value = false;
     }
 }
 
@@ -125,7 +139,9 @@ const getSuggestions = async () => {
                             <Label for="limit">Limit</Label>
                             <Input id="limit" type="number" placeholder="Limit" v-model="limit" />
                         </div>
-                        <Button @click="getSuggestions()" class="cursor-pointer">Get Suggestions</Button> 
+                        <Button @click="getSuggestions()" :disabled="isLoading" class="cursor-pointer">
+                            {{ isLoading ? 'Getting suggestions...' : 'Get Suggestions' }}
+                        </Button> 
                     </div>
 
                     <div v-if="suggestions.length > 0" v-for="suggestion in suggestions" :key="suggestion.movie_title" class="border rounded-lg p-4 bg-white shadow-sm mt-4">
