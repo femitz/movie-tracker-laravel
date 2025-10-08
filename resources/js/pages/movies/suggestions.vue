@@ -118,7 +118,7 @@ const getSuggestions = async () => {
 </script>
 
 <template>
-    <Head title="Movies" />
+    <Head title="Movies Suggestions" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
