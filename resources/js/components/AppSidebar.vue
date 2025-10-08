@@ -5,39 +5,22 @@ import NavUser from '@/components/NavUser.vue';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { Lightbulb , MonitorPlay } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import navigationConfig from '@/config/navigation.json';
+import { getIcon } from '@/lib/iconLoader';
 
-const mainNavItems: NavItem[] = [
-    // {
-    //     title: 'Dashboard',
-    //     href: '/dashboard',
-    //     icon: LayoutGrid,
-    // },
-    {
-        title: 'Movies',
-        href: '/movies',
-        icon: MonitorPlay,
-    },
-    {
-        title: 'Suggestions',
-        href: '/movies/suggestions',
-        icon: Lightbulb,
-    },
-];
+const processNavItems = (items: any[]): NavItem[] => {
+    return items
+        .filter(item => item.enabled !== false) 
+        .map(item => ({
+            title: item.title,
+            href: item.href,
+            icon: getIcon(item.icon), 
+        }));
+};
 
-const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Github Repo',
-    //     href: 'https://github.com/laravel/vue-starter-kit',
-    //     icon: Folder,
-    // },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#vue',
-    //     icon: BookOpen,
-    // },
-];
+const mainNavItems: NavItem[] = processNavItems(navigationConfig.mainNav);
+const footerNavItems: NavItem[] = processNavItems(navigationConfig.footerNav);
 </script>
 
 <template>
