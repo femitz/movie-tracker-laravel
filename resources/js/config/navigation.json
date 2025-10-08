@@ -1,0 +1,33 @@
+{
+  "mainNav": [
+    {
+      "title": "Dashboard",
+      "href": "/dashboard",
+      "icon": "LayoutGrid"
+    },
+    {
+      "title": "Movies",
+      "href": "/movies",
+      "icon": "MonitorPlay"
+    },
+    {
+      "title": "Suggestions",
+      "href": "/movies/suggestions",
+      "icon": "Lightbulb"
+    }
+  ],
+  "footerNav": [
+    {
+      "title": "Github Repo",
+      "href": "https://github.com/laravel/vue-starter-kit",
+      "icon": "Folder",
+      "enabled": false
+    },
+    {
+      "title": "Documentation",
+      "href": "https://laravel.com/docs/starter-kits#vue",
+      "icon": "BookOpen",
+      "enabled": false
+    }
+  ]
+}
